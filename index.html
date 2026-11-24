@@ -6,8 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0f172a">
-<link rel="icon" type="image/png" href="favicon.png"><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈 </text></svg>">
-<title>DESAFIO 40.000</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
+<title>DESAFIO 10.000</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body {
@@ -77,11 +78,11 @@
 </head>
 <body>
   <header>
-    <h1>💰 DESAFIO 40.000</h1>
+    <h1>🏆 DESAFIO 10.000</h1>
     <div class="stats">
-      <div>Total: <span id="total">283</span></div>
+      <div>Total: <span id="total">44</span></div>
       <div>Feitos: <span id="done">0</span></div>
-      <div>Faltam: <span id="left">283</span></div>
+      <div>Faltam: <span id="left">44</span></div>
       <div class="sum">Soma: <span id="sum">0</span></div>
     </div>
     <div class="actions">
@@ -93,9 +94,20 @@
   <div class="grid" id="grid"></div>
 
 <script>
-  const TOTAL = 283;
-  const STORAGE_KEY = 'depositos_v1';
+  // Sequência calculada para somar exatamente 10.000
+  // Múltiplos de 10 até 440, com duas vezes o 200 e sem o 100.
+  const VALUES = [
+    10, 20, 30, 40, 50, 60, 70, 80, 90,
+    110, 120, 130, 140, 150, 160, 170, 180, 190,
+    200, 200,
+    210, 220, 230, 240, 250, 260, 270, 280, 290,
+    300, 310, 320, 330, 340, 350, 360, 370, 380, 390,
+    400, 410, 420, 430, 440
+  ];
+  
+  const STORAGE_KEY = 'desafio_10000_v1';
   const grid = document.getElementById('grid');
+  const totalEl = document.getElementById('total');
   const doneEl = document.getElementById('done');
   const leftEl = document.getElementById('left');
   const sumEl = document.getElementById('sum');
@@ -106,28 +118,44 @@
     grid.innerHTML = '';
     let count = 0;
     let sum = 0;
-    for (let i = 1; i <= TOTAL; i++) {
+    
+    for (let idx = 0; idx < VALUES.length; idx++) {
+      const val = VALUES[idx];
       const cell = document.createElement('div');
       let classes = 'cell';
-      if (state[i]) classes += ' checked';
-      else if (i === 186) classes += ' highlight';
-      cell.className = classes;
-      cell.textContent = i;
-      cell.onclick = () => toggle(i);
-      grid.appendChild(cell);
-      if (state[i]) {
+      
+      if (state[idx]) {
+        classes += ' checked';
         count++;
-        sum += i;
+        sum += val;
       }
+      
+      cell.className = classes;
+      cell.textContent = val;
+      cell.onclick = () => toggle(idx);
+      grid.appendChild(cell);
     }
+    
+    totalEl.textContent = VALUES.length;
     doneEl.textContent = count;
-    leftEl.textContent = TOTAL - count;
+    leftEl.textContent = VALUES.length - count;
     sumEl.textContent = sum.toLocaleString('pt-BR');
+    
+    // Mostra botão de exportar se houver pelo menos um item marcado
+    const exportBtn = document.querySelector('button[onclick="exportar()"]');
+    if (count > 0) {
+      exportBtn.classList.remove('hidden');
+    } else {
+      exportBtn.classList.add('hidden');
+    }
   }
 
-  function toggle(n) {
-    if (state[n]) delete state[n];
-    else state[n] = true;
+  function toggle(idx) {
+    if (state[idx]) {
+      delete state[idx];
+    } else {
+      state[idx] = true;
+    }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     render();
   }
@@ -141,17 +169,20 @@
   }
 
   function exportar() {
-    const feitos = Object.keys(state).map(n => 'Depósito #' + n).join('\n') || 'Nenhum depósito registrado.';
+    const indicesFeitos = Object.keys(state).map(idx => 'Meta #' + VALUES[idx]);
+    const feitos = indicesFeitos.join('\n') || 'Nenhum registro feito.';
     const count = Object.keys(state).length;
-    const sum = Object.keys(state).reduce((acc, n) => acc + Number(n), 0);
-    const txt = 'RELATÓRIO DO DESAFIO 40.000\nData: ' + new Date().toLocaleString('pt-BR') +
-                '\nTotal feitos: ' + count + '/' + TOTAL +
+    const sum = Object.keys(state).reduce((acc, idx) => acc + VALUES[idx], 0);
+    
+    const txt = 'RELATÓRIO DO DESAFIO 10.000\nData: ' + new Date().toLocaleString('pt-BR') +
+                '\nTotal de metas: ' + count + '/' + VALUES.length +
                 '\nSoma dos valores: ' + sum.toLocaleString('pt-BR') +
                 '\n\n' + feitos;
+                
     const blob = new Blob([txt], {type:'text/plain'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'desafio_40000_' + Date.now() + '.txt';
+    a.download = 'desafio_10000_' + Date.now() + '.txt';
     a.click();
   }
 
